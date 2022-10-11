@@ -1,0 +1,143 @@
+Introducing Asynchronous JavaScript 
+
+1: What is Asynchronous programming? =======================================================================
+    Asynchronous programming is a technique that enables your program to start a potentially
+    long task and still be able to be responsive to other events while your tasks run.
+    Rather than waiting for the task to finish. 
+
+    This is different from synchronous programming where tasks are completed sequentially.
+    Once one task finishes the next one runs. 
+
+2: Asynchronous functions ==================================================================================
+    Many functions provided by browsers can potentially take a long time and therefore are
+    asynchronous. 
+
+    Examples:
+    - Making HTTP requests using fetch()
+    - Accessing a user's camera or microphone using getUserMedia()
+    - Asking a user to select files using showOpenFilePicker()
+
+3: Synchronous programming
+const name = 'Miriam';                         <- Declares a string called name
+const greeting = `Hello, my name is ${name}!`; <- Declares another string
+                                                  called greeting with uses name
+console.log(greeting);                         <- Outputs the greeting in the JS console
+// "Hello, my name is Miriam!"
+
+    The browser effectively steps through the program one line at a time, in the order we wrote it. 
+    At each point, the browser waits for the previous line to finish before going to the next line. 
+    Each line depends on work done in previous lines. This makes this a Synchronous program. 
+
+function makeGreeting(name) {
+  return `Hello, my name is ${name}!`;
+}
+
+const name = 'Miriam';
+const greeting = makeGreeting(name);
+console.log(greeting);
+// "Hello, my name is Miriam!"
+
+A function like this is also considered Synchronous, even though the programming doesn't necessarily run
+in the direction it was written. The greeting still depends on the makeGreeting function in order to run.
+
+The trouble with Synchronous programming is if you ever create a long-running Synchronous program. 
+A program runs sequentially but takes a long time to process. If a synchronous function is running,
+the program becomes completely unresponsive, you can't click, type or do anything else until the function
+finishes. 
+
+This is a basic problem with long-running synchronous functions. We need a way for our program to:
+    1. Start a long-running operation by calling a function
+    2. Have that function start the operation and return immediately, so that our program can still be
+       responsive to other events
+    3. Notify us with the result of the operation when it eventually completes
+That's what asynchronous functions do. 
+
+4: Event handlers =========================================================================================
+    Event handlers are really a form of asynchronous programming. You provide a function (the event handler) 
+    that will be called, not right away, but whenever the event happens. If the "event" is "the asynchronous operation
+    has completed", then that event could be used to notify the caller about the result of an asynchronous function call.
+
+<button id="xhr">Click to start request</button>
+<button id="reload">Reload</button>
+
+<pre readonly class="event-log"></pre>
+
+const log = document.querySelector('.event-log');
+
+document.querySelector('#xhr').addEventListener('click', () => {
+  log.textContent = '';
+
+  const xhr = new XMLHttpRequest();
+
+  xhr.addEventListener('loadend', () => {
+    log.textContent = `${log.textContent}Finished with status: ${xhr.status}`;
+  });
+
+  xhr.open('GET', 'https://raw.githubusercontent.com/mdn/content/main/files/en-us/_wikihistory.json');
+  xhr.send();
+  log.textContent = `${log.textContent}Started XHR request\n`;});
+
+document.querySelector('#reload').addEventListener('click', () => {
+  log.textContent = '';
+  document.location.reload();
+});
+
+The XMLHttpRequest API enables us to make HTTP requests to a remote server using JS.
+You can get notified about the process and eventual completion of a request by attaching
+event listeners to the XMLHttpRequest object. 
+
+5: Callbacks ================================================================================
+    An event handler is a particular type of callback, a function passed into another function, 
+    with the expectation that the callback will be called at the appropriate time. Callbacks used 
+    to be the main way asynchronous functions were implemented in JS.
+
+    However, callback-based code can get hard to understand when the callback itself has to call functions 
+    that accept a callback. This is common if you need to perform an operation that breaks down into a series 
+    of asynchronous functions. 
+
+function doStep1(init, callback) {
+  const result = init + 1;
+  callback(result);
+}
+
+function doStep2(init, callback) {
+  const result = init + 2;
+  callback(result);
+}
+
+function doStep3(init, callback) {
+  const result = init + 3;
+  callback(result);
+}
+
+function doOperation() {
+  doStep1(0, (result1) => {
+    doStep2(result1, (result2) => {
+      doStep3(result2, (result3) => {
+        console.log(`result: ${result3}`);
+      });
+    });
+  });
+}
+
+doOperation();
+
+    Because we have callbacks inside callbacks, we get a deeply nested doOperation()
+    function, which is harder to read and debug. This is referred to as "callback hell" 
+    or "pyramid of doom" 
+
+    For these reasons, most modern asynchronous APIs don't use callbacks. Instead the foundation
+    of asynchronous programming in JavaScript is the Promise. 
+
+Learning Questions:
+1. What is the primary difference between synchronous and asynchronous programming in JavaScript?
+    Asynchronous programming allows you to run other code alongside long-running code in your program.
+    Synchronous programming is done sequentially, you need to wait for your code to finish before doing anything
+    else. 
+
+2. Why is this useful?
+Synchronous programming can take a very long time and freeze any actions in your browser until it finishes. With 
+Asynchronous programming, long-running code can still be run alongside other code in your program. 
+
+3. What problems does it solve?
+It solves browsers/programs freezing whenever synchronous code runs. 
